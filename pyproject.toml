@@ -4,9 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gentasks"
+authors = [
+    {name = "ArtichaTM", email = "tima-1324@mail.ru"}
+]
+description = "Package to generate tasks on generators creation"
+readme = "readme.md"
 version = "1.0.0"
 dependencies = []
-requires-python='>=3.11'
+requires-python='>=3.10.11'
 
 [tool.setuptools.packages.find]
 # All the following settings are optional:
