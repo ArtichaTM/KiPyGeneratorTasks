@@ -6,7 +6,7 @@ from random import shuffle
 import dataclasses
 
 # Module Imports
-from .tasktypes import *
+from .tasktypes import GeneratorDefaultTask, GeneratorTaskMeta
 from .constants import TASK_TEXT, NOTES
 
 
@@ -31,7 +31,8 @@ class Exercise:
         return f"<Exercise with {len(self._subgenerators)} tasks>"
 
     def append(self, generator_class: GeneratorClass) -> None:
-        assert isinstance(generator_class, type(GeneratorDefaultTask)), "Can't append to list non-generator class"
+        assert isinstance(generator_class, GeneratorTaskMeta),\
+                "Can't append to list non-generator class"
         self._subgenerators.append(generator_class)
         self.complexity += generator_class.complexity
 
@@ -58,13 +59,10 @@ class Exercise:
         string = StringIO()
         string.write('\t' + TASK_TEXT)
 
-        # if self._subgenerators:
-        #     string.write('\n')
-
         # Tasks text
         for index, task in enumerate(self._subgenerators, 1):
             string.write(f"\n{index}. {task.description()}")
-    
+
         # Call examples
         string.write('\n\tПример вызова генератора:')
         all_variants = [*self.all_variants()]
@@ -132,7 +130,8 @@ class Exercise:
         # Validator check
         gen = generator(*arguments)
         if type(gen) != GeneratorType:
-            raise TypeError("Функция(/генератор) не вернула валидный генератор")
+            raise TypeError("Функция(/генератор) не "
+                            "вернула валидный генератор")
         self._check_variant(gen, arguments)
 
         # Normal iteration

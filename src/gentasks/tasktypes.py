@@ -1,8 +1,9 @@
 # Python Imports
 import random
+from typing import Generator, Iterable, Generic, TypeVar, Optional
+from typing import Dict, Set, List, Type
 from string import ascii_letters
 from types import GeneratorType
-from typing import Generator, Iterable, Generic, TypeVar, Optional, Dict, Set, List, Type
 import dataclasses
 
 # Module Imports
@@ -37,7 +38,9 @@ class GeneratorTaskMeta(type):
     _complexity_set: Set[int] = set()
 
     def __new__(mcs: Type['GeneratorDefaultTask'], name, bases, dct):
-        cl: Type['GeneratorDefaultTask'] = super().__new__(mcs, name, bases, dct)
+        cl: Type['GeneratorDefaultTask'] = super().__new__(
+            mcs, name, bases, dct
+        )
 
         # This if cause ONLY to avoid GeneratorDefaultTask class
         if mcs._avoided:
@@ -51,7 +54,8 @@ class GeneratorTaskMeta(type):
         return cl
 
     def __int__(self: Type['GeneratorDefaultTask']) -> int:
-        assert hasattr(self, '_complexity'), "All tasks should include _complexity"
+        assert hasattr(self, '_complexity'),\
+                "All tasks should include _complexity"
         return self.complexity
 
     def __repr__(self) -> str:
@@ -91,17 +95,22 @@ class GeneratorDefaultTask(metaclass=GeneratorTaskMeta):
     class InputDataclass(AbstractInputDataclass):
         """Tuple, that contains names and types, that required to built task"""
         def __iter__(self):
-            return (getattr(self, field.name) for field in dataclasses.fields(self))
+            return (
+                getattr(self, field.name) for field in dataclasses.fields(self)
+            )
 
     def to_dataclass(self) -> InputDataclass:
-        raise NotImplementedError('All generator task classes should implement .to_tuple() method')
+        raise NotImplementedError('All generator task classes should '
+                                  'implement .to_tuple() method')
 
     @classmethod
     def from_dataclass(cls, tuple: InputDataclass) -> 'GeneratorDefaultTask':
         return cls(*tuple)
 
     @classmethod
-    def check_cases_generator(cls) -> Generator['GeneratorDefaultTask', None, None]:
+    def check_cases_generator(
+            cls
+    ) -> Generator['GeneratorDefaultTask', None, None]:
         """ Generates tasks with values to check all possibilities
         :return: Generator-class generator
         :rtype: GeneratorDefaultTask
@@ -110,14 +119,17 @@ class GeneratorDefaultTask(metaclass=GeneratorTaskMeta):
 
     def variables_check(self, *args, **kwargs):
         """Checks object variables for correct type, conditions, e.t.c."""
-        raise NotImplementedError('All generator task classes should implement .variables_check() function')
+        raise NotImplementedError('All generator task classes should '
+                                  'implement .variables_check() function')
 
     def generator(self) -> Generator:
         """Creates valid generator corresponding to object variables
-        :return: Generator, that works based on object variables and returns(/accepts) valid values
+        :return: Generator, that works based on object variables
+            and returns(/accepts) valid values
         :rtype: Generator
         """
-        raise NotImplementedError('All generator task classes should implement .new() function')
+        raise NotImplementedError('All generator task classes'
+                                  'should implement .new() function')
 
     def check_generator(self, generator: Generator) -> int:
         """Checks generator for correct work.
@@ -143,7 +155,8 @@ class GeneratorDefaultTask(metaclass=GeneratorTaskMeta):
 
 
 class Range(GeneratorDefaultTask):
-    """Generator, which return numbers within range (start -> end), without end number in ascending order"""
+    """Generator, which return numbers within range (start -> end),
+        without end number in ascending order"""
     __slots__ = ('start', 'end')
     complexity = 1
 
@@ -172,7 +185,8 @@ class Range(GeneratorDefaultTask):
         elif not isinstance(end, int):
             raise TypeError('End index should be integer')
         elif start >= end:
-            raise ValueError('For positive range start should be lower than end')
+            raise ValueError('For positive range '
+                             'start should be lower than end')
 
     def generator(self) -> Generator[int, None, None]:
         """Returns generator, which returns values from start to end"""
@@ -189,16 +203,21 @@ class Range(GeneratorDefaultTask):
         for valid, current in zip(valid_generator, generator):
             calls += 1
             if not type(current) == type(valid):
-                raise TypeError(f"Ожидался тип {type(valid).__qualname__}, получен {type(current).__qualname__}")
+                raise TypeError(f"Ожидался тип {type(valid).__qualname__}, "
+                                f"получен {type(current).__qualname__}")
             elif current != valid:
-                raise ValueError(f"Ожидалось {valid}, получено {current}")
+                raise ValueError(f"Ожидалось {valid}, "
+                                 f"получено {current}")
         if valid is _empty:
-            raise GeneratorUnexpectedShutdown("Генератор закончил работу при старте")
+            raise GeneratorUnexpectedShutdown("Генератор закончил "
+                                              "работу при старте")
         return calls
 
 
 class NegativeRange(Range):
-    """Generator, which return numbers within range (start -> end), without end number in descending order """
+    """Generator, which return numbers within range (start -> end),
+        without end number in descending order
+    """
     complexity = 2
 
     def variables_check(self, start: int, end: int):
@@ -207,10 +226,12 @@ class NegativeRange(Range):
         elif not isinstance(end, int):
             raise TypeError('End index should be integer')
         elif start <= end:
-            raise ValueError('For negative range start should be greater than end')
+            raise ValueError('For negative range start '
+                             'should be greater than end')
 
     def generator(self) -> Generator[int, None, None]:
-        """Returns generator, which returns values from start to end in reverse order"""
+        """Returns generator,
+            which returns values from start to end in reverse order"""
         yield from range(self.start, self.end, -1)
 
     @classmethod
@@ -246,7 +267,8 @@ class AwaitKeyword(GeneratorDefaultTask):
 
     def _random_keywords(self) -> Generator[str, None, None]:
         while True:
-            string = ''.join(random.choice(ascii_letters) for _ in range(random.randint(0, 30)))
+            length = range(random.randint(0, 30))
+            string = ''.join(random.choice(ascii_letters) for _ in length)
             if string == self.keyword:
                 continue
             yield string
@@ -287,13 +309,17 @@ class AwaitKeyword(GeneratorDefaultTask):
             try:
                 generator.send(random_keyword)
             except StopIteration:
-                raise GeneratorUnexpectedShutdown("Генератор остановил свою работу до ключевого слова")
+                raise GeneratorUnexpectedShutdown(
+                    "Генератор остановил своюработу до ключевого слова"
+                )
 
             if loops > 13:
                 break
 
         if loops is _empty:
-            raise GeneratorUnexpectedShutdown("Генератор закончил работу при старте")
+            raise GeneratorUnexpectedShutdown(
+                "Генератор закончил работу при старте"
+            )
 
         # Check after keyword
         try:
@@ -301,11 +327,15 @@ class AwaitKeyword(GeneratorDefaultTask):
             calls += 1
         except StopIteration:
             raise GeneratorUnexpectedShutdown(
-                "После получения ключа генератор завершил свою работу, хотя ожидалось str"
+                "После получения ключа генератор завершил свою работу, "
+                "хотя ожидалось str"
             )
 
         if value != self.keyword:
-            raise GeneratorUnexpectedShutdown("Генератору передан ключ. Полученное значение не совпадает с ключом")
+            raise GeneratorUnexpectedShutdown(
+                "Генератору передан ключ. "
+                "Полученное значение не совпадает с ключом"
+            )
 
         return calls
 
@@ -358,12 +388,16 @@ class Iterator(GeneratorDefaultTask, Generic[T]):
         for valid, current in zip(valid_generator, generator):
             calls += 1
             if not type(current) == type(valid):
-                raise TypeError(f"Ожидался тип {type(valid).__qualname__} ({valid}),"
-                                f" получен {type(current).__qualname__} ({current})")
+                raise TypeError(
+                    f"Ожидался тип {type(valid).__qualname__} ({valid}),"
+                    f" получен {type(current).__qualname__} ({current})"
+                )
             elif current != valid:
                 raise ValueError(f"Ожидалось {valid}, получено {current}")
         if valid is _empty and sum(1 for _ in self.iterable):
-            raise GeneratorUnexpectedShutdown("Генератор закончил работу при старте")
+            raise GeneratorUnexpectedShutdown(
+                "Генератор закончил работу при старте"
+            )
         return calls
 
 
@@ -433,18 +467,22 @@ class Fibonacci(GeneratorDefaultTask):
         :type current_gen: Generator
         :raise TypeError: Returned type different from correct
         :raise ValueError: Returned value different from correct
-        :raise GeneratorUnexpectedShutdown: Generator unexpectedly raised StopIteration
+        :raise GeneratorUnexpectedShutdown: Generator unexpectedly
+            raised StopIteration
         """
         answer_valid = next(valid_gen)
         try:
             answer_current = next(current_gen)
         except StopIteration:
-            raise GeneratorUnexpectedShutdown("Генератор закончил работу до исключения StopIteration")
+            raise GeneratorUnexpectedShutdown(
+                "Генератор закончил работу до исключения StopIteration"
+            )
         if not type(answer_current) == type(answer_valid):
             raise TypeError(f"Ожидался тип {type(answer_valid).__qualname__},"
                             f" получен {type(answer_current).__qualname__}")
         elif answer_current != answer_valid:
-            raise ValueError(f"Ожидалось {answer_valid}, получено {answer_current}")
+            raise ValueError(f"Ожидалось {answer_valid}, "
+                             f"получено {answer_current}")
 
     def check_generator(self, generator: Generator[T, None, None]) -> int:
         if not isinstance(generator, GeneratorType):
