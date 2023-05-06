@@ -451,7 +451,6 @@ class Fibonacci(GeneratorDefaultTask):
             raise TypeError("Полученный объект не является генератором")
 
         valid_generator = self.generator()
-        answer_valid = _empty = object()
 
         calls: int = 0
         for calls in range(0, random.randint(400, 400+MAX_LOOP_TESTS)):
